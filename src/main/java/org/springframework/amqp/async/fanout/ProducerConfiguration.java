@@ -1,7 +1,8 @@
 package org.springframework.amqp.async.fanout;
 
 import org.springframework.amqp.core.AmqpAdmin;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,36 +15,32 @@ import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProc
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
-public class ProducerConfiguration extends GeneralConfiguration {
+public class ProducerConfiguration {
+
+
+    public static final String QUEUE_NAME = GeneralConfiguration.QUEUE_NAME + 100;
 
     @Bean
-    public Queue createQueue1() {
-
-        String queueName = QUEUE_NAME + 1;
-        return new Queue(queueName);
+    public RabbitTemplate rabbitTemplate() {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory());
+        //template.setExchange("fanout");
+        template.setRoutingKey(QUEUE_NAME);
+        return template;
     }
 
     @Bean
-    public Queue createQueue2() {
-
-        String queueName = QUEUE_NAME + 2;
-        return new Queue(queueName);
+    public ConnectionFactory connectionFactory() {
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
+        connectionFactory.setHost("localhost");
+        connectionFactory.setVirtualHost("vhost1");
+        connectionFactory.setUsername("testuser1");
+        connectionFactory.setPassword("pass1");
+        return connectionFactory;
     }
 
     @Bean
-    public Queue createQueue3() {
-
-        String queueName = QUEUE_NAME + 3;
-        return new Queue(queueName);
-    }
-
-    @Bean
-    public AmqpAdmin createAdmin(){
-        RabbitAdmin admin = new RabbitAdmin(connectionFactory());
-        admin.declareQueue(createQueue1());
-        admin.declareQueue(createQueue2());
-        admin.declareQueue(createQueue3());
-        return admin;
+    public AmqpAdmin amqpAdmin() {
+        return new RabbitAdmin(connectionFactory());
     }
 
     @Bean
@@ -73,4 +70,9 @@ public class ProducerConfiguration extends GeneralConfiguration {
         }
     }
 
+    private void deleteExistingQueues(RabbitAdmin admin) {
+        admin.deleteQueue(GeneralConfiguration.QUEUE_NAME+1);
+        admin.deleteQueue(GeneralConfiguration.QUEUE_NAME+2);
+        admin.deleteQueue(GeneralConfiguration.QUEUE_NAME+3);
+    }
 }
