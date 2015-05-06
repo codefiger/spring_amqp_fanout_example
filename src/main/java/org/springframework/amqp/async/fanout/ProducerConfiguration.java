@@ -16,9 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Configuration
 public class ProducerConfiguration extends GeneralConfiguration {
 
-
-    private int queueCount = 0;
-
     @Bean
     public Queue createQueue1() {
 

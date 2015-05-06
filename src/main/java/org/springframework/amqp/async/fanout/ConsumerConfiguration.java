@@ -22,23 +22,6 @@ public class ConsumerConfiguration extends GeneralConfiguration {
     @Bean
     @DependsOn("createAdmin")
     public Queue createQueue(AmqpAdmin admin) {
-
-//        String queueName = QUEUE_NAME + 1;
-//        Properties queueProperties;
-//        final int possibleMlBackendAPICores = 10;
-//        for (int i = 1; i <= possibleMlBackendAPICores; i++) {
-//            queueName = QUEUE_NAME + i;
-//            queueProperties = admin.getQueueProperties(queueName);
-//            if ( queueProperties != null && noConsumers(queueProperties) ) {
-//                return new Queue(queueName);
-//            } else {
-//                queueName = QUEUE_NAME + (i + 1);
-//                Queue queue = new Queue(queueName);
-//                admin.declareQueue(queue);
-//                return queue;
-//            }
-//        }
-//        throw new RuntimeException(new RabbitQueueInitializationException("Queue could not be initialized for " + queueName));
         return reuseOrCreateQueue(admin, 1);
     }
 
@@ -48,13 +31,10 @@ public class ConsumerConfiguration extends GeneralConfiguration {
         Properties queueProperties;
         queueProperties = admin.getQueueProperties(queueName);
 
-        if (queueProperties == null) {
+        if (queueDoesNotExist(queueProperties) ||
+                queueExists(queueProperties) && hasNoConsumers(queueProperties)) {
 
-            return registerQueue(admin, queueName);
-
-        } else if (queueProperties != null && noConsumers(queueProperties)) {
-
-            return registerQueue(admin, queueName);
+            return useQueue(queueName);
 
         } else {
 
@@ -62,18 +42,20 @@ public class ConsumerConfiguration extends GeneralConfiguration {
         }
     }
 
-    private Queue reuseExistingQueue(String queueName) {
+    private boolean queueDoesNotExist(Properties queueProperties) {
+        return queueProperties == null;
+    }
+
+    private boolean queueExists(Properties queueProperties) {
+        return queueProperties != null;
+    }
+
+    private Queue useQueue(String queueName) {
         return new Queue(queueName);
     }
 
-    private Queue registerQueue(AmqpAdmin admin, String queueName) {
-        final Queue queue = new Queue(queueName);
-        //admin.declareQueue(queue);
-        return queue;
-    }
 
-
-    private boolean noConsumers(Properties queueProperties) {
+    private boolean hasNoConsumers(Properties queueProperties) {
         return ((Integer) queueProperties.get("QUEUE_CONSUMER_COUNT")) == 0;
     }
 
@@ -86,12 +68,6 @@ public class ConsumerConfiguration extends GeneralConfiguration {
         final MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(new RabbitMessageHandler());
         container.setMessageListener(messageListenerAdapter);
         return container;
-    }
-
-    public class RabbitQueueInitializationException extends Exception {
-        public RabbitQueueInitializationException(String msg) {
-            super(msg);
-        }
     }
 
 }
