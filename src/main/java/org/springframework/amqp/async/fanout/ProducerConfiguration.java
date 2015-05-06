@@ -1,6 +1,7 @@
 package org.springframework.amqp.async.fanout;
 
 import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -23,7 +24,7 @@ public class ProducerConfiguration {
     @Bean
     public RabbitTemplate rabbitTemplate() {
         RabbitTemplate template = new RabbitTemplate(connectionFactory());
-        //template.setExchange("fanout");
+        //template.setExchange(ExchangeTypes.FANOUT);
         template.setRoutingKey(QUEUE_NAME);
         return template;
     }

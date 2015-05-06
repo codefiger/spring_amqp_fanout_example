@@ -36,10 +36,10 @@ public class ConsumerConfiguration {
     @Bean
     public RabbitTemplate rabbitTemplate() {
         RabbitTemplate template = new RabbitTemplate(connectionFactory());
+        template.setExchange(ExchangeTypes.FANOUT);
         //The routing key is set to the name of the queue by the broker for the default exchange.
         template.setRoutingKey(QUEUE_NAME);
-        //Where we will synchronously receive messages from
-        template.setQueue(QUEUE_NAME);
+
         return template;
     }
 
