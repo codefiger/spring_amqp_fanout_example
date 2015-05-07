@@ -1,11 +1,12 @@
 package org.springframework.amqp.async.fanout;
 
-import org.springframework.amqp.core.AmqpAdmin;
-import org.springframework.amqp.core.ExchangeTypes;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
@@ -18,14 +19,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Configuration
 public class ProducerConfiguration {
 
+    private static final String EXCHANGE_NAME = "logs";
 
-    public static final String QUEUE_NAME = GeneralConfiguration.QUEUE_NAME + 100;
+
+    private static MessageConverter messageConverter = new SimpleMessageConverter();
+
 
     @Bean
     public RabbitTemplate rabbitTemplate() {
         RabbitTemplate template = new RabbitTemplate(connectionFactory());
-        //template.setExchange(ExchangeTypes.FANOUT);
-        template.setRoutingKey(QUEUE_NAME);
         return template;
     }
 
@@ -39,10 +41,16 @@ public class ProducerConfiguration {
         return connectionFactory;
     }
 
-    @Bean
-    public AmqpAdmin amqpAdmin() {
-        return new RabbitAdmin(connectionFactory());
-    }
+//    @Bean
+//    public AmqpAdmin amqpAdmin() {
+//        final RabbitAdmin admin = new RabbitAdmin(connectionFactory());
+//        FanoutExchange fanoutExchange = new FanoutExchange(EXCHANGE_NAME);
+//        admin.declareExchange(fanoutExchange);
+//        String queueName = admin.declareQueue(new Queue(EXCHANGE_NAME));
+//        Binding binding = new Binding(queueName, Binding.DestinationType.QUEUE, EXCHANGE_NAME, "", null);
+//        admin.declareBinding(binding);
+//        return admin;
+//    }
 
     @Bean
     public ScheduledProducer scheduledProducer() {
@@ -66,14 +74,31 @@ public class ProducerConfiguration {
         public void sendMessage() {
             final int i = counter.incrementAndGet();
             final String object = "Hello New World " + i;
-            rabbitTemplate.convertAndSend(object);
-            System.out.println("Received: " + object);
+            //rabbitTemplate.convertAndSend(object);
+            String messageString = getMessage(new String[] { "test" });
+            final Message message1 = messageConverter.toMessage(messageString, null);
+            rabbitTemplate.send(EXCHANGE_NAME, "", message1);
+            System.out.println("Sent: " + object);
         }
     }
 
-    private void deleteExistingQueues(RabbitAdmin admin) {
-        admin.deleteQueue(GeneralConfiguration.QUEUE_NAME+1);
-        admin.deleteQueue(GeneralConfiguration.QUEUE_NAME+2);
-        admin.deleteQueue(GeneralConfiguration.QUEUE_NAME+3);
+    private static String getMessage(String[] strings) {
+        if (strings.length < 1) {
+            return "Hello World!";
+        }
+        return joinStrings(strings, " ");
     }
+
+    private static String joinStrings(String[] strings, String delimiter) {
+        int length = strings.length;
+        if (length == 0) {
+            return "";
+        }
+        StringBuilder words = new StringBuilder(strings[0]);
+        for (int i = 1; i < length; i++) {
+            words.append(delimiter).append(strings[i]);
+        }
+        return words.toString();
+    }
+
 }
