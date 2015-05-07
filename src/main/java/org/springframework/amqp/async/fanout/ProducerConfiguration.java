@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Configuration
 public class ProducerConfiguration {
 
-    private static final String EXCHANGE_NAME = "logs";
+    private static final String EXCHANGE_NAME = "events";
 
 
     private static MessageConverter messageConverter = new SimpleMessageConverter();
@@ -40,17 +40,6 @@ public class ProducerConfiguration {
         connectionFactory.setPassword("pass1");
         return connectionFactory;
     }
-
-//    @Bean
-//    public AmqpAdmin amqpAdmin() {
-//        final RabbitAdmin admin = new RabbitAdmin(connectionFactory());
-//        FanoutExchange fanoutExchange = new FanoutExchange(EXCHANGE_NAME);
-//        admin.declareExchange(fanoutExchange);
-//        String queueName = admin.declareQueue(new Queue(EXCHANGE_NAME));
-//        Binding binding = new Binding(queueName, Binding.DestinationType.QUEUE, EXCHANGE_NAME, "", null);
-//        admin.declareBinding(binding);
-//        return admin;
-//    }
 
     @Bean
     public ScheduledProducer scheduledProducer() {
@@ -74,7 +63,6 @@ public class ProducerConfiguration {
         public void sendMessage() {
             final int i = counter.incrementAndGet();
             final String object = "Hello New World " + i;
-            //rabbitTemplate.convertAndSend(object);
             String messageString = getMessage(new String[] { "test" });
             final Message message1 = messageConverter.toMessage(messageString, null);
             rabbitTemplate.send(EXCHANGE_NAME, "", message1);

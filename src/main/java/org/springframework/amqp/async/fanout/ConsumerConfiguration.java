@@ -18,11 +18,9 @@ import java.util.Properties;
 @Configuration
 public class ConsumerConfiguration {
 
-    public static final String EXCHANGE_NAME = "logs";
+    public static final String EXCHANGE_NAME = "events";
 
     private String queueName;
-
-    //TODO bind queue to the exchange!!!
 
     @Bean
     public ConnectionFactory connectionFactory() {
@@ -62,40 +60,5 @@ public class ConsumerConfiguration {
         container.setMessageListener(messageListenerAdapter);
         return container;
     }
-
-
-//
-//    private Queue reuseOrCreateQueue(AmqpAdmin admin, int queueCount) {
-//
-//        String queueName = GeneralConfiguration.QUEUE_NAME + queueCount;
-//        Properties queueProperties;
-//        queueProperties = admin.getQueueProperties(queueName);
-//
-//        if (queueDoesNotExist(queueProperties) ||
-//                queueExists(queueProperties) && hasNoConsumers(queueProperties)) {
-//
-//            return useQueue(queueName);
-//
-//        } else {
-//
-//            return reuseOrCreateQueue(admin, queueCount + 1);
-//        }
-//    }
-//
-//    private boolean queueDoesNotExist(Properties queueProperties) {
-//        return queueProperties == null;
-//    }
-//
-//    private boolean queueExists(Properties queueProperties) {
-//        return queueProperties != null;
-//    }
-//
-//    private Queue useQueue(String queueName) {
-//        return new Queue(queueName);
-//    }
-//
-//    private boolean hasNoConsumers(Properties queueProperties) {
-//        return ((Integer) queueProperties.get("QUEUE_CONSUMER_COUNT")) == 0;
-//    }
 
 }
