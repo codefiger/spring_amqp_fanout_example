@@ -20,6 +20,8 @@ public class ConsumerConfiguration {
 
     public static final String EXCHANGE_NAME = "events";
 
+    private static MessageConverter messageConverter = new Jackson2JsonMessageConverter();
+
     private String queueName;
 
     @Bean
@@ -61,15 +63,10 @@ public class ConsumerConfiguration {
         return container;
     }
 
-    public MessageConverter jsonMessageConverter() {
-        Jackson2JsonMessageConverter jsonMessageConverter = new Jackson2JsonMessageConverter();
-        return jsonMessageConverter;
-    }
-
     public MessageListenerAdapter messageListenerAdapter() {
-        MessageListenerAdapter listenerAdapter = new MessageListenerAdapter(new RabbitMessageHandler(), jsonMessageConverter());
+        MessageListenerAdapter listenerAdapter = new MessageListenerAdapter(new RabbitMessageHandler(), messageConverter);
         listenerAdapter.setDefaultListenerMethod("handleMessage");
-        listenerAdapter.setMessageConverter(jsonMessageConverter());
+        listenerAdapter.setMessageConverter(messageConverter);
         return listenerAdapter;
     }
 
