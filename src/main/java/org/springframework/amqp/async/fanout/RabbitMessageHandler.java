@@ -5,11 +5,10 @@ import org.springframework.amqp.support.converter.SimpleMessageConverter;
 
 public class RabbitMessageHandler {
 
-	private static MessageConverter messageConverter = new SimpleMessageConverter();
+    private static MessageConverter messageConverter = new SimpleMessageConverter();
 
-	public void handleMessage(String text) {
-
-		System.out.println("Received: " + text);
-	}
+    public void handleMessage(String text) {
+        System.out.println("Received: " + text);
+    }
 
 }

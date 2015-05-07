@@ -5,6 +5,7 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class ProducerConfiguration {
     private static final String EXCHANGE_NAME = "events";
 
 
-    private static MessageConverter messageConverter = new SimpleMessageConverter();
+    private static MessageConverter messageConverter = new Jackson2JsonMessageConverter();
 
 
     @Bean
@@ -62,31 +63,11 @@ public class ProducerConfiguration {
         @Scheduled(fixedRate = 3000)
         public void sendMessage() {
             final int i = counter.incrementAndGet();
-            final String object = "Hello New World " + i;
-            String messageString = getMessage(new String[] { "test" });
-            final Message message1 = messageConverter.toMessage(messageString, null);
-            rabbitTemplate.send(EXCHANGE_NAME, "", message1);
-            System.out.println("Sent: " + object);
+            String messageString = "Yeah";
+            final Message message = messageConverter.toMessage(messageString, null);
+            rabbitTemplate.send(EXCHANGE_NAME, "", message);
+            System.out.println("Sent: " + message);
         }
-    }
-
-    private static String getMessage(String[] strings) {
-        if (strings.length < 1) {
-            return "Hello World!";
-        }
-        return joinStrings(strings, " ");
-    }
-
-    private static String joinStrings(String[] strings, String delimiter) {
-        int length = strings.length;
-        if (length == 0) {
-            return "";
-        }
-        StringBuilder words = new StringBuilder(strings[0]);
-        for (int i = 1; i < length; i++) {
-            words.append(delimiter).append(strings[i]);
-        }
-        return words.toString();
     }
 
 }
